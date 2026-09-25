@@ -1,8 +1,8 @@
 # Hướng dẫn OMP ORC Plugin
 
-Plugin biến model đang chọn trong terminal [Oh My Pi (OMP)](https://github.com/can1357/oh-my-pi) thành **Supervisor**. Supervisor có thể giao một việc chuyên môn cho Claude Code CLI, Codex CLI hoặc một model khác đã có trong OMP, nhận kết quả rồi tự kiểm chứng và trả lời bạn trong cùng terminal.
+Plugin bổ sung công cụ điều phối cho terminal [Oh My Pi (OMP)](https://github.com/can1357/oh-my-pi). Supervisor có thể giao một việc chuyên môn cho Claude Code CLI, Codex CLI hoặc một model khác đã có trong OMP, nhận kết quả rồi tự kiểm chứng và trả lời bạn trong cùng terminal.
 
-Plugin **không yêu cầu B.AI hoặc DeepSeek** để làm Supervisor. Nó cũng không tự cài provider, không đăng nhập hộ Claude/Codex và không đọc token tài khoản của hai CLI đó.
+Model bạn chọn trong OMP luôn là Supervisor. Plugin sử dụng các model đã cấu hình trong OMP và gọi Claude/Codex qua CLI chính thức; OMP và từng CLI tự quản lý phiên đăng nhập của mình.
 
 ## 1. Điều kiện cần
 
@@ -78,7 +78,7 @@ Plugin gọi lệnh `codex` đã có trên máy. Tài khoản, phiên đăng nh�
 
 ### Model khác trong OMP
 
-Nếu muốn dùng một provider/model đã cấu hình trong OMP làm specialist, kiểm tra tên model bằng `omp models`. Khi giao việc, chỉ định `runtime: omp-model` và tên đầy đủ dạng `provider/model` đang có trong danh sách. Ví dụ `deepseek/ten-model` chỉ là mẫu; hãy thay bằng ID thực tế của bạn. Nếu không chỉ định model riêng, adapter sẽ dùng model được cấu hình cho role hoặc model hiện tại của OMP.
+Nếu muốn dùng một provider/model đã cấu hình trong OMP làm specialist, kiểm tra tên model bằng `omp models`. Khi giao việc, chỉ định `runtime: omp-model` và tên đầy đủ dạng `provider/model` đang có trong danh sách. Nếu không chỉ định model riêng, adapter sẽ dùng model được cấu hình cho role hoặc model hiện tại của OMP.
 
 ## 4. Sử dụng trong một terminal OMP
 
@@ -112,7 +112,7 @@ Supervisor quyết định có cần gọi specialist hay không. Với việc �
 - Nếu muốn specialist sửa code, hãy yêu cầu Supervisor gọi `orc_dispatch` với `permission: write` và chọn **Claude CLI hoặc Codex CLI**. Sau khi specialist trả kết quả, Supervisor cần xem file đã đổi và chạy lại kiểm tra phù hợp.
 - `omp-model` với `permission: write` hiện bị từ chối vì chưa có ranh giới ghi an toàn được xác nhận.
 - Mỗi lần chỉ chạy một specialist. Plugin không tự chuyển sang runtime khác nếu CLI hoặc model được chỉ định gặp lỗi.
-- V1 chưa đăng ký provider B.AI, chưa lưu phiên specialist, chưa chạy song song và chưa tạo worktree riêng cho worker.
+- V1 chưa tự thêm provider, chưa lưu phiên specialist, chưa chạy song song và chưa tạo worktree riêng cho worker.
 
 ## 6. Kiểm tra và xử lý lỗi
 
