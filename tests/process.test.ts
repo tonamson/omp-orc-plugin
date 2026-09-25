@@ -28,7 +28,11 @@ test("excess stdout fails within bounded memory", async () => {
 });
 
 test("nonzero exit produces PROCESS_EXIT_ERROR", async () => {
-  await assert.rejects(runJsonLines(process.execPath, ["-e", "process.exit(7)"], options()), /PROCESS_EXIT_ERROR/);
+  await assert.rejects(runJsonLines(process.execPath, ["-e", "process.stdout.write('{\"type\":\"error\",\"message\":\"auth failed\"}\\n'); process.exit(7)"], options()), error => {
+    assert.match(String(error), /PROCESS_EXIT_ERROR/);
+    assert.deepEqual((error as { lines?: unknown[] }).lines, [{ type: "error", message: "auth failed" }]);
+    return true;
+  });
 });
 
 test("abort kills child before delayed filesystem side effect", async () => {

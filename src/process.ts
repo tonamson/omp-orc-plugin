@@ -16,6 +16,12 @@ export interface ProcessOutput {
   exitCode: number;
 }
 
+export class ProcessExitError extends Error {
+  constructor(message: string, readonly lines: unknown[], readonly stderr: string, readonly exitCode: number) {
+    super(message);
+  }
+}
+
 export async function runJsonLines(binary: string, args: string[], options: ProcessOptions): Promise<ProcessOutput> {
   if (options.signal.aborted) throw new Error("USER_ABORT: task canceled");
 
@@ -73,7 +79,7 @@ export async function runJsonLines(binary: string, args: string[], options: Proc
       child.once("close", code => resolve(code ?? -1));
     });
     if (failure) throw failure;
-    if (exitCode !== 0) throw new Error(`PROCESS_EXIT_ERROR: CLI exited with code ${exitCode}`);
+    if (exitCode !== 0) throw new ProcessExitError(`PROCESS_EXIT_ERROR: CLI exited with code ${exitCode}`, lines, stderr, exitCode);
     return { lines, stderr, exitCode };
   } catch (error) {
     if (failure) throw failure;
