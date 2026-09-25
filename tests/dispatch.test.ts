@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { DispatchRequest, RuntimeAdapter } from "../src/contracts.ts";
 import { createDispatcher } from "../src/dispatch.ts";
 
@@ -65,4 +69,19 @@ test("write permission stays explicit", async () => {
   const dispatch = createDispatcher(() => adapter, environment, () => {});
   assert.equal((await dispatch(request, context, new AbortController().signal, () => {})).permission, "read");
   assert.equal((await dispatch({ ...request, permission: "write" }, context, new AbortController().signal, () => {})).permission, "write");
+});
+
+test("write result reports both paths of a staged rename", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "orc-rename-"));
+  execFileSync("git", ["init", "-q", cwd]);
+  writeFileSync(join(cwd, "old-name.ts"), "export const value = 1;\n");
+  execFileSync("git", ["add", "old-name.ts"], { cwd });
+  execFileSync("git", ["-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-qm", "baseline"], { cwd });
+  execFileSync("git", ["mv", "old-name.ts", "new-name.ts"], { cwd });
+  const adapter: RuntimeAdapter = { async run(task) {
+    return { status: "completed", role: task.role, runtime: task.runtime, permission: task.permission, content: "renamed" };
+  } };
+  const dispatch = createDispatcher(() => adapter, () => ({ currentModel: "openai/gpt-5.4", roleModels: {}, hasModel: () => false, cwd }), () => {});
+  const result = await dispatch({ ...request, permission: "write" }, { cwd }, new AbortController().signal, () => {});
+  assert.deepEqual(result.changedPaths?.sort(), ["new-name.ts", "old-name.ts"]);
 });

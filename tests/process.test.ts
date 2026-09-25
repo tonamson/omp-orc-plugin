@@ -54,3 +54,23 @@ test("abort kills child before delayed filesystem side effect", async () => {
 test("timeout terminates child with PROCESS_TIMEOUT", async () => {
   await assert.rejects(runJsonLines(process.execPath, ["-e", "setTimeout(() => {}, 10000)"], options(undefined, 50)), /PROCESS_TIMEOUT/);
 });
+
+test("abort stops a descendant that inherits CLI pipes", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "orc-tree-"));
+  const marker = join(dir, "descendant-marker");
+  try {
+    const controller = new AbortController();
+    const grandchild = `setTimeout(() => require('fs').writeFileSync(${JSON.stringify(marker)}, 'late'), 3000)`;
+    const parent = `require('child_process').spawn(process.execPath, ['-e', ${JSON.stringify(grandchild)}], {stdio:'inherit'}); process.stdout.write('{' + '"type":"ready"' + '}\\n'); setInterval(() => {}, 10000)`;
+    const started = Date.now();
+    await assert.rejects(runJsonLines(process.execPath, ["-e", parent], {
+      ...options(controller.signal, 10_000),
+      onProgress(type) { if (type === "ready") controller.abort(); },
+    }), /USER_ABORT/);
+    assert.ok(Date.now() - started < 2_500, "descendant kept inherited pipes open after abort");
+    await new Promise(resolve => setTimeout(resolve, 3_100));
+    await assert.rejects(readFile(marker), { code: "ENOENT" });
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

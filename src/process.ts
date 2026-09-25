@@ -25,7 +25,8 @@ export class ProcessExitError extends Error {
 export async function runJsonLines(binary: string, args: string[], options: ProcessOptions): Promise<ProcessOutput> {
   if (options.signal.aborted) throw new Error("USER_ABORT: task canceled");
 
-  const child = spawn(binary, args, { cwd: options.cwd, stdio: ["pipe", "pipe", "pipe"] });
+  const ownGroup = process.platform !== "win32";
+  const child = spawn(binary, args, { cwd: options.cwd, stdio: ["pipe", "pipe", "pipe"], detached: ownGroup });
   const lines: unknown[] = [];
   let stderr = "";
   let stdoutBytes = 0;
@@ -34,11 +35,20 @@ export async function runJsonLines(binary: string, args: string[], options: Proc
   let forceTimer: ReturnType<typeof setTimeout> | undefined;
   let deadline: ReturnType<typeof setTimeout> | undefined;
 
+  const killOwned = (signal: NodeJS.Signals) => {
+    if (ownGroup && child.pid) {
+      try {
+        process.kill(-child.pid, signal);
+        return;
+      } catch { /* Group may have already exited. */ }
+    }
+    child.kill(signal);
+  };
   const stop = (error: Error) => {
     if (failure) return;
     failure = error;
-    child.kill("SIGTERM");
-    forceTimer = setTimeout(() => child.kill("SIGKILL"), 2_000);
+    killOwned("SIGTERM");
+    forceTimer = setTimeout(() => killOwned("SIGKILL"), 2_000);
   };
   const abort = () => stop(new Error("USER_ABORT: task canceled"));
   options.signal.addEventListener("abort", abort, { once: true });

@@ -40,7 +40,18 @@ function errorCode(error: unknown): ErrorCode {
 function changedPaths(cwd: string): string[] {
   try {
     const status = execFileSync("git", ["status", "--porcelain", "-z"], { cwd, encoding: "utf8", timeout: 5_000 });
-    return status.split("\0").filter(Boolean).map(entry => entry.slice(3));
+    const records = status.split("\0");
+    const paths = new Set<string>();
+    for (let index = 0; index < records.length; index++) {
+      const record = records[index];
+      if (!record) continue;
+      paths.add(record.slice(3));
+      if (/[RC]/.test(record.slice(0, 2))) {
+        const source = records[++index];
+        if (source) paths.add(source);
+      }
+    }
+    return [...paths];
   } catch {
     return [];
   }

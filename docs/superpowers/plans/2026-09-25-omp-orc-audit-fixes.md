@@ -1,6 +1,6 @@
 # OMP ORC Audit Fixes Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for this consolidated review fix pass. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for this consolidated review fix pass. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Close all four confirmed review findings before V1 is considered ready.
 
@@ -32,10 +32,10 @@
 
 **Interfaces:** Preserve `runJsonLines` and `ProcessOutput`.
 
-- [ ] **Step 1: Write a regression test** that starts a parent spawning a grandchild which writes a marker after three seconds while inheriting stdout/stderr. Abort after the grandchild signals readiness. Assert `USER_ABORT` returns near the two-second grace bound and the marker remains absent after the delayed-write interval.
-- [ ] **Step 2: Run `node --import tsx --test tests/process.test.ts`.** Expected: the new test fails because the descendant survives or the return is late.
-- [ ] **Step 3: Spawn a dedicated process group on POSIX and signal the group** with `SIGTERM`, then `SIGKILL` after two seconds. Keep a direct-child fallback for platforms without process groups. Ensure completion, abort and timeout clean up listeners and timers.
-- [ ] **Step 4: Run the focused test, then `npm test` and `npm run typecheck`.** Expected: all pass.
+- [x] **Step 1: Write a regression test** that starts a parent spawning a grandchild which writes a marker after three seconds while inheriting stdout/stderr. Abort after the grandchild signals readiness. Assert `USER_ABORT` returns near the two-second grace bound and the marker remains absent after the delayed-write interval.
+- [x] **Step 2: Run `node --import tsx --test tests/process.test.ts`.** Expected: the new test fails because the descendant survives or the return is late.
+- [x] **Step 3: Spawn a dedicated process group on POSIX and signal the group** with `SIGTERM`, then `SIGKILL` after two seconds. Keep a direct-child fallback for platforms without process groups. Ensure completion, abort and timeout clean up listeners and timers.
+- [x] **Step 4: Run the focused test, then `npm test` and `npm run typecheck`.** Expected: all pass.
 
 ### Task 2: Cover OMP initialization with cancellation and timeout
 
@@ -43,10 +43,10 @@
 
 **Interfaces:** Preserve `createOmpModelAdapter` and `RuntimeAdapter.run`.
 
-- [ ] **Step 1: Write regression tests** for abort during SDK loading and during `createAgentSession`. In both cases assert `prompt()` never runs; if a session appears after cancellation, assert it is disposed. Add an initialization timeout case with a deferred SDK promise.
-- [ ] **Step 2: Run `node --import tsx --test tests/omp-model.test.ts`.** Expected: the new tests fail because abort is observed only after session creation.
-- [ ] **Step 3: Install the abort/deadline gate before the first await.** Race initialization against it, recheck the signal after each await, dispose a late-created session, and keep the gate active through prompt/idle settlement.
-- [ ] **Step 4: Run focused and full tests plus typecheck.** Expected: all pass and no prompt starts after cancellation.
+- [x] **Step 1: Write regression tests** for abort during SDK loading and during `createAgentSession`. In both cases assert `prompt()` never runs; if a session appears after cancellation, assert it is disposed. Add an initialization timeout case with a deferred SDK promise.
+- [x] **Step 2: Run `node --import tsx --test tests/omp-model.test.ts`.** Expected: the new tests fail because abort is observed only after session creation.
+- [x] **Step 3: Install the abort/deadline gate before the first await.** Race initialization against it, recheck the signal after each await, dispose a late-created session, and keep the gate active through prompt/idle settlement.
+- [x] **Step 4: Run focused and full tests plus typecheck.** Expected: all pass and no prompt starts after cancellation.
 
 ### Task 3: Treat OMP terminal failures as failures
 
@@ -54,10 +54,10 @@
 
 **Interfaces:** Preserve normalized `DispatchResult` and existing error codes.
 
-- [ ] **Step 1: Write regression tests** for partial text followed by `message_end` with `stopReason: "error"`, `message_end` with `stopReason: "aborted"`, and a no-text authentication failure. Assert `RATE_LIMIT`, `USER_ABORT`, and `AUTH_REQUIRED` respectively.
-- [ ] **Step 2: Run focused tests.** Expected: the new tests fail by returning partial success or `MALFORMED_OUTPUT`.
-- [ ] **Step 3: Inspect the terminal assistant message and classify failure before success.** Return success only after a non-error final assistant outcome; keep partial text advisory and bounded.
-- [ ] **Step 4: Run focused and full tests plus typecheck.** Expected: all pass.
+- [x] **Step 1: Write regression tests** for partial text followed by `message_end` with `stopReason: "error"`, `message_end` with `stopReason: "aborted"`, and a no-text authentication failure. Assert `RATE_LIMIT`, `USER_ABORT`, and `AUTH_REQUIRED` respectively.
+- [x] **Step 2: Run focused tests.** Expected: the new tests fail by returning partial success or `MALFORMED_OUTPUT`.
+- [x] **Step 3: Inspect the terminal assistant message and classify failure before success.** Return success only after a non-error final assistant outcome; keep partial text advisory and bounded.
+- [x] **Step 4: Run focused and full tests plus typecheck.** Expected: all pass.
 
 ### Task 4: Parse Git changed paths correctly
 
@@ -65,13 +65,13 @@
 
 **Interfaces:** Keep `changedPaths` as candidate paths, including pre-existing changes.
 
-- [ ] **Step 1: Write a regression test** in a disposable Git repo that stages or records a file, renames it, dispatches a write task, and asserts the result includes the complete old and new names.
-- [ ] **Step 2: Run `node --import tsx --test tests/dispatch.test.ts`.** Expected: the old name is truncated by `slice(3)`.
-- [ ] **Step 3: Parse porcelain `-z` records by status.** Consume the extra source-path record for rename/copy entries without stripping a status prefix from it. Deduplicate the candidate path list.
-- [ ] **Step 4: Run focused and full tests plus typecheck, inspect `git diff --check`, and commit the combined fixes.** Expected: all pass.
+- [x] **Step 1: Write a regression test** in a disposable Git repo that stages or records a file, renames it, dispatches a write task, and asserts the result includes the complete old and new names.
+- [x] **Step 2: Run `node --import tsx --test tests/dispatch.test.ts`.** Expected: the old name is truncated by `slice(3)`.
+- [x] **Step 3: Parse porcelain `-z` records by status.** Consume the extra source-path record for rename/copy entries without stripping a status prefix from it. Deduplicate the candidate path list.
+- [x] **Step 4: Run focused and full tests plus typecheck, inspect `git diff --check`, and commit the combined fixes.** Expected: all pass.
 
 ## Final verification
 
-- [ ] Check the four original reproductions against the fixed code.
-- [ ] Run `npm test`, `npm run typecheck`, and `git diff --check` once more.
-- [ ] Review credential and provider-dependent smoke gaps separately; do not claim they passed without configured accounts.
+- [x] Check the four original reproductions against the fixed code.
+- [x] Run `npm test`, `npm run typecheck`, and `git diff --check` once more.
+- [x] Review credential and provider-dependent smoke gaps separately; do not claim they passed without configured accounts.
