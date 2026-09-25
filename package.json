@@ -1,0 +1,12 @@
+{
+  "name": "omp-orc-plugin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "omp": { "extensions": ["./src/index.ts"] },
+  "dependencies": { "@oh-my-pi/pi-coding-agent": "18.3.1" },
+  "devDependencies": { "tsx": "4.23.15", "typescript": "~5.9.3", "@types/node": "^24.0.0" }
+}
